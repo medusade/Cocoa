@@ -1,0 +1,141 @@
+///////////////////////////////////////////////////////////////////////
+/// Copyright (c) 1988-2016 $organization$
+///
+/// This software is provided by the author and contributors ``as is'' 
+/// and any express or implied warranties, including, but not limited to, 
+/// the implied warranties of merchantability and fitness for a particular 
+/// purpose are disclaimed. In no event shall the author or contributors 
+/// be liable for any direct, indirect, incidental, special, exemplary, 
+/// or consequential damages (including, but not limited to, procurement 
+/// of substitute goods or services; loss of use, data, or profits; or 
+/// business interruption) however caused and on any theory of liability, 
+/// whether in contract, strict liability, or tort (including negligence 
+/// or otherwise) arising in any way out of the use of this software, 
+/// even if advised of the possibility of such damage.
+///
+///   File: Main.cmm
+///
+/// Author: $author$
+///   Date: 10/19/2016
+///////////////////////////////////////////////////////////////////////
+#include "cacao/cocoa/apple/osx/Main.chh"
+
+namespace cacao {
+namespace cocoa {
+namespace apple {
+namespace osx {
+
+///////////////////////////////////////////////////////////////////////
+/// Implentation: Main
+///////////////////////////////////////////////////////////////////////
+object implementation Main {
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    object<Main> initWithApplication(Application* application) {
+        _application = application;
+        _window = nil;
+
+        if ((super => init())) {
+            return self;
+        }
+        return nil;
+    }
+    void fini() {
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    MainWindow* createWindow() {
+        NSRect contentRect = self => windowContentRect();
+        MainWindow* window = nil;
+
+        if ((window = new MainWindow => initWithContentRect
+             (contentRect, application := _application))) {
+            return window;
+        } else {
+        }
+        return nil;
+    }
+    NSRect windowContentRect() {
+        return NSMakeRect
+        (CACAO_COCOA_APPLE_OSX_MAINWINDOW_CONTENT_X,
+         CACAO_COCOA_APPLE_OSX_MAINWINDOW_CONTENT_Y,
+         CACAO_COCOA_APPLE_OSX_MAINWINDOW_CONTENT_WIDTH,
+         CACAO_COCOA_APPLE_OSX_MAINWINDOW_CONTENT_HEIGHT);
+    }
+    NSString* windowTitle() {
+        if ((_menu)) {
+            return _menu => title();
+        }
+        return new NSString => init();
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    MainMenu* createMenu() {
+        NSString *quitTitle = nil, *quitKeyEquivalent = nil;
+        MainMenu* menu = nil;
+
+        if ((quitTitle = self => menuQuitTitle())
+            && ((quitKeyEquivalent = self => menuQuitKeyEquivalent()))) {
+
+            if ((menu = new MainMenu => initWithQuitTitle
+                 (quitTitle, keyEquivalent := quitKeyEquivalent, target := _application,
+                  action := selector(terminate:), application := _application))) {
+                return menu;
+            }
+        }
+        return nil;
+    }
+    NSString* menuQuitTitle() {
+        return new NSString => initWithUTF8String
+        (CACAO_COCOA_APPLE_OSX_MAINMENU_QUITITEM_TITLE);
+    }
+    NSString* menuQuitKeyEquivalent() {
+        return new NSString => initWithUTF8String
+        (CACAO_COCOA_APPLE_OSX_MAINMENU_QUITITEM_KEY);
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    int run(int argc, char** argv:argv, char** env:env) {
+        int err = 0;
+
+        if ((_menu = self => createMenu())) {
+            if ((_window = self => createWindow())) {
+                _window => setTitle(self => windowTitle());
+                _application => run();
+            }
+        }
+        return err;
+    }
+};
+
+} // namespace osx
+} // namespace apple
+} // namespace cocoa
+} // namespace cacao
+
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+int main(int argc, char **argv, char **env) {
+    int err = 1;
+    NSAutoreleasePool *autoreleasePool = nil;
+    ::cacao::cocoa::apple::osx::Application* sharedApplication = nil;
+    object<::cacao::cocoa::apple::osx::Main> main = nil;
+
+    if ((autoreleasePool = new NSAutoreleasePool => init())) {
+        if ((sharedApplication = ::cacao::cocoa::apple::osx::Application => sharedApplication())) {
+            if ((main = ::cacao::cocoa::apple::osx::ApplicationMain => createWithApplication(sharedApplication))) {
+                err = main => run(argc withArgv:argv withEnv:env);
+                main => fini();
+            } else {
+            }
+        } else {
+        }
+        autoreleasePool => release();
+    } else {
+    }
+    return err;
+}
